@@ -1,14 +1,14 @@
 """The two requirements files must not drift apart on the packages they share.
 
-``requirements.txt`` is the full install (CI, source installs);
+``requirements.txt`` is the source runtime install;
 ``requirements-web.txt`` is what the Docker image installs. A package that
 appears in both must carry the same version specifier in both, or an install
 from one file silently differs from the other - ``requests[socks]`` had to be
 changed in both in #380.
 
-The files are allowed to differ in *which* packages they list: test tooling and
-maigret only belong to the full install, and xhtml2pdf belongs to both because
-PDF export needs it in either install (#394).
+The files are allowed to differ in *which* packages they list: maigret only
+belongs to the source install, and xhtml2pdf belongs to both because PDF export
+needs it in either install (#394). Test tooling belongs to requirements-dev.txt.
 """
 
 import re

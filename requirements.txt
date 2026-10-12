@@ -9,8 +9,6 @@ python-whois>=0.9.6
 
 maigret>=0.6.6
 
-dataclasses-json>=0.6.7
-
 Jinja2>=3.1.6
 
 fastapi>=0.142.2
@@ -23,7 +21,4 @@ pypdf>=6.19.0
 python-docx>=1.2.0
 xhtml2pdf>=0.2.21
 
-pytest>=9.1.1
-pytest-cov>=7.1.0
-pytest-asyncio>=1.4.0
 httpx>=0.28.1

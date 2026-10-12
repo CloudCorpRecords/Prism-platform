@@ -31,7 +31,7 @@ python -m venv venv
 source venv/bin/activate   # Linux/macOS
 venv\Scripts\activate      # Windows
 
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env       # add API keys (optional)
 python -m uvicorn web.app:app --host 0.0.0.0 --port 8080 --reload --no-proxy-headers
 ```
@@ -88,7 +88,10 @@ class YourModule:
 
 ## Running Tests
 
+Install the runtime dependencies and test tooling in your activated virtual environment:
+
 ```bash
+pip install -r requirements.txt -r requirements-dev.txt
 pytest tests/ -v --cov=modules --cov-report=term-missing
 ```
 
