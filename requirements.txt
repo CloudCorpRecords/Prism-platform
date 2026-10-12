@@ -11,7 +11,7 @@ maigret>=0.6.6
 
 Jinja2>=3.1.6
 
-fastapi>=0.142.2
+fastapi>=0.142.4
 uvicorn[standard]>=0.54.0
 pydantic>=2.13.5
 python-multipart>=0.0.32
