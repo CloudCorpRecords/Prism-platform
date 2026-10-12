@@ -1,3 +1,4 @@
+import ipaddress
 import re
 import socket
 from email import message_from_string
@@ -14,19 +15,15 @@ def _reverse_dns(ip: str) -> Optional[str]:
 
 
 def _parse_received_ip(line: str) -> Optional[str]:
-    ip_re = re.compile(r'\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\b')
-    matches = ip_re.findall(line)
-    for ip in matches:
-        parts = [int(p) for p in ip.split('.')]
-        if parts[0] == 10:
+    line = re.sub(r'IPv6:', ' ', line, flags=re.IGNORECASE)
+    for candidate in re.findall(r'[0-9A-Fa-f:.]+', line):
+        candidate = candidate.rstrip('.')
+        try:
+            addr = ipaddress.ip_address(candidate)
+        except ValueError:
             continue
-        if parts[0] == 127:
-            continue
-        if parts[0] == 192 and parts[1] == 168:
-            continue
-        if parts[0] == 172 and 16 <= parts[1] <= 31:
-            continue
-        return ip
+        if addr.is_global:
+            return str(addr)
     return None
 
 

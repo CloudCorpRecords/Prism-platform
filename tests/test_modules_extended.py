@@ -966,12 +966,35 @@ class TestEmailHeaderAnalyzer:
 
     def test_parse_received_ip_returns_public(self):
         from modules.email_header_analyzer import _parse_received_ip
-        result = _parse_received_ip("from mail.example.com (203.0.113.5)")
-        assert result == "203.0.113.5"
+        result = _parse_received_ip("from mail.example.com (8.8.8.8)")
+        assert result == "8.8.8.8"
 
     def test_parse_received_ip_no_ip(self):
         from modules.email_header_analyzer import _parse_received_ip
         assert _parse_received_ip("from localhost by localhost") is None
+
+    def test_parse_received_ip_gmail_ipv6(self):
+        from modules.email_header_analyzer import _parse_received_ip
+        line = ("from mail-ej1-f41.google.com (mail-ej1-f41.google.com "
+                "[2a00:1450:4864:20::641])")
+        assert _parse_received_ip(line) == "2a00:1450:4864:20::641"
+ 
+    def test_parse_received_ip_ipv6_prefixed(self):
+        from modules.email_header_analyzer import _parse_received_ip
+        line = "from mx.example.org ([IPv6:2a00:1450:4864:20::641])"
+        assert _parse_received_ip(line) == "2a00:1450:4864:20::641"
+ 
+    def test_parse_received_ip_skips_cgnat(self):
+        from modules.email_header_analyzer import _parse_received_ip
+        assert _parse_received_ip("from mail.example.com (100.64.1.1)") is None
+ 
+    def test_parse_received_ip_skips_link_local(self):
+        from modules.email_header_analyzer import _parse_received_ip
+        assert _parse_received_ip("from mail.example.com (169.254.10.20)") is None
+ 
+    def test_parse_received_ip_rejects_invalid_octet(self):
+        from modules.email_header_analyzer import _parse_received_ip
+        assert _parse_received_ip("from mail.example.com (999.1.1.1)") is None
 
     def test_parse_received_ip_allows_public_172(self):
         from modules.email_header_analyzer import _parse_received_ip
@@ -981,7 +1004,7 @@ class TestEmailHeaderAnalyzer:
 
     def test_parse_received_ip_allows_public_192(self):
         from modules.email_header_analyzer import _parse_received_ip
-        assert _parse_received_ip("from mail.example.com (192.0.2.1)") == "192.0.2.1"
+        assert _parse_received_ip("from mail.example.com (192.30.255.112)") == "192.30.255.112"
         assert _parse_received_ip("from mail.example.com (192.168.1.1)") is None
 
 class TestOpsecScoreExtended:
