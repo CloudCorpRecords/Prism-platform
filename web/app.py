@@ -29,7 +29,8 @@ import config
 from config import PRISM_VERSION, USER_AGENT
 
 from modules.graph_builder import build_graph
-from modules.module_status import classify, reason_for, OK, ERROR
+from modules import get_proxies
+from modules.module_status import classify, reason_for, annotate, OK, ERROR, RATE_LIMITED
 from modules.opsec_score import score_from_results
 from modules.report_generator import generate_html_report, generate_pdf_report
 from modules.webhook_formatters import format_slack, format_discord
@@ -1139,6 +1140,31 @@ def _lookup_local_oui(mac: str) -> Optional[str]:
     first_three = ":".join(prefix.split(":")[:3])
     return oui_data.get(first_three)
 
+def _fetch_mac_vendor(normalized_mac: str) -> Dict[str, Any]:
+    """Ask macvendors.com for the vendor of a normalized MAC address.
+
+    A 404 means the prefix is not registered (random and locally administered
+    MACs hit this all the time), which is an answer, not a failure. A 429 means
+    the free API's rate limit was hit and the caller should retry shortly.
+    """
+    result: Dict[str, Any] = {"mac": normalized_mac, "vendor": None, "source": "api"}
+    try:
+        resp = _requests.get(
+            f"https://api.macvendors.com/{normalized_mac}",
+            timeout=10,
+            proxies=get_proxies(),
+        )
+    except _requests.RequestException:
+        return annotate(result, ERROR, "macvendors.com could not be reached")
+    if resp.status_code == 200:
+        result["vendor"] = resp.text.strip()
+        return annotate(result, OK)
+    if resp.status_code == 404:
+        return annotate(result, OK, "Vendor not registered")
+    if resp.status_code == 429:
+        return annotate(result, RATE_LIMITED, "macvendors.com rate limit, try again in a second")
+    return annotate(result, ERROR, f"API returned status {resp.status_code}")
+
 @app.post("/api/mac-lookup", dependencies=[Depends(require_api_key)])
 @limiter.limit("20/minute")
 async def mac_lookup(request: Request, req: dict):
@@ -1162,15 +1188,7 @@ async def mac_lookup(request: Request, req: dict):
 
     try:
         loop = asyncio.get_running_loop()
-        def _fetch():
-            resp = _requests.get(f"https://api.macvendors.com/{mac}", timeout=10)
-            if resp.status_code == 200:
-                return {"mac": normalized_mac, "vendor": resp.text.strip(), "source": "api"}
-            elif resp.status_code == 404:
-                return {"mac": normalized_mac, "vendor": None, "error": "Not found", "source": "api"}
-            else:
-                return {"mac": normalized_mac, "vendor": None, "error": f"API returned status {resp.status_code}", "source": "api"}
-        result = await loop.run_in_executor(None, _fetch)
+        result = await loop.run_in_executor(None, _fetch_mac_vendor, normalized_mac)
         if result.get("vendor") and not result.get("error"):
             _set_cache("mac", normalized_mac, result)
         return result
