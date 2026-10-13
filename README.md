@@ -62,7 +62,7 @@ PRISM queries 20-odd external sources and puts what comes back in one place. Tar
 - **Frontend**: Next.js 15 (App Router), React, TypeScript, Tailwind CSS, Leaflet (maps)
 - **AI**: OpenRouter (Nvidia Nemotron) or Groq (Llama-3) for summary and chat
 - **Infrastructure**: Docker, docker-compose, GitHub Actions CI/CD
-- **Tests**: pytest, 435 cases, network mocked
+- **Tests**: pytest, 500+ cases, network mocked
 
 <p align="center">
   <img src="docs/pics/main_showcase/main_showcase.png" alt="PRISM Dashboard" width="720" />
@@ -396,7 +396,7 @@ prism/
 │       ├── components/           # UI (Topbar, Sidebar, Map, Graph, ...)
 │       └── lib/                  # API client, i18n, types
 │
-└── tests/                        # 435 pytest tests
+└── tests/                        # 500+ pytest tests
     ├── test_modules.py
     ├── test_modules_extended.py
     ├── test_v2_1_modules.py
@@ -408,7 +408,7 @@ prism/
 ## Running Tests
 
 ```bash
-pip install pytest pytest-cov pytest-asyncio
+pip install -r requirements.txt -r requirements-dev.txt
 pytest -q
 # or with coverage:
 pytest tests/ -v --cov=modules --cov=web --cov-report=term-missing
@@ -581,7 +581,7 @@ For security issues, see [SECURITY.md](SECURITY.md).
 
 ## Development note
 
-PRISM is built by one person, with AI assistance as part of the workflow. Everything gets reviewed and tested before it lands: 435 tests covering module mocking, SSRF and auth, and reverse-proxy behaviour. Bug reports and pull requests are welcome.
+PRISM is built by one person, with AI assistance as part of the workflow. Everything gets reviewed and tested before it lands: 500+ tests covering module mocking, SSRF and auth, and reverse-proxy behaviour. Bug reports and pull requests are welcome.
 
 ---
 
